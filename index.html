@@ -1,489 +1,634 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Xx LIFE-QUEST xX</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LIFE-QUEST M</title>
 
-<style>
-/* ------------------------------------------------------------------
-    CLAUDE ARTIFACT 스타일 기반 전체 UI
------------------------------------------------------------------- */
-* {
-  box-sizing: border-box;
-  font-family: 'Pretendard', sans-serif;
-}
-body {
-  margin: 0;
-  background: linear-gradient(135deg, #1b1b1e, #2a2a31);
-  color: #fff;
-}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-/* 공통 카드 스타일 */
-.card {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  padding: 18px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-  backdrop-filter: blur(10px);
-  animation: fadeIn .3s ease;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 8px;
-  border-radius: 10px;
-  border: 1px solid #a970ff;
-  background: rgba(169,112,255,0.15);
-  color: #fff;
-  font-weight: 600;
-  transition: .2s;
-}
-button:hover {
-  background: rgba(169,112,255,0.35);
-  transform: translateY(-2px);
-}
-
-/* 화면 섹션 SPA 숨김 처리 */
-.section { display: none; padding: 20px; }
-.active { display: block; animation: fadeIn .3s ease; }
-
-/* 페이드 애니메이션 */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px);}
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 토글 스위치 */
-.toggle {
-  position: relative;
-  width: 46px; height: 24px;
-}
-.toggle input { display:none; }
-.slider {
-  position: absolute;
-  cursor: pointer;
-  background: #777;
-  border-radius: 24px;
-  top:0; left:0; right:0; bottom:0;
-  transition:.3s;
-}
-.slider:before {
-  position:absolute;
-  content:"";
-  width:20px; height:20px;
-  left:2px; top:2px;
-  background:white;
-  border-radius:50%;
-  transition:.3s;
-}
-input:checked + .slider {
-  background:#a970ff;
-}
-input:checked + .slider:before {
-  transform: translateX(22px);
-}
-
-/* 모달 */
-.modal-bg {
-  display:none;
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5);
-  backdrop-filter: blur(3px);
-  justify-content:center; align-items:center;
-}
-.modal {
-  width:90%;
-  background:#2d2d33;
-  padding:20px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.1);
-}
-
-/* 인벤토리 아이템 */
-.inv-item {
-  padding:12px;
-  background:rgba(255,255,255,0.05);
-  border-radius:10px;
-  margin-bottom:10px;
-  border:1px solid rgba(255,255,255,0.1);
-}
-</style>
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    .nav-active { color:#2563eb !important; }
+    .nav-inactive { color:#9ca3af !important; }
+  </style>
 </head>
-<body>
 
-<!-- -------------------------------------------------------------
-   1. 로그인 화면
--------------------------------------------------------------- -->
-<section id="login" class="section active">
-  <h2>Xx LIFE-QUEST xX</h2>
-  <div class="card">
-    <p>사용자명을 입력하여 시작하세요</p>
-    <input id="loginName" placeholder="닉네임" style="width:100%;padding:12px;border-radius:10px;border:none;">
-    <button onclick="login()">로그인</button>
-  </div>
-</section>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100">
 
-<!-- -------------------------------------------------------------
-   2. 대시보드
--------------------------------------------------------------- -->
-<section id="dashboard" class="section">
-  <h2>대시보드</h2>
+<!-- LOGIN -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl">
+    <div class="text-center mb-8">
+      <div class="inline-block p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4">
+        <i data-lucide="target" class="w-10 h-10 text-white"></i>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-800">LIFE-QUEST M</h1>
+      <p class="text-gray-500 mt-2 text-sm">당신의 일상을 게임처럼</p>
+    </div>
 
-  <div class="card">
-    <p><b>레벨:</b> <span id="lv"></span></p>
-    <p><b>경험치:</b> <span id="exp"></span> / <span id="expNeed"></span></p>
-    <p><b>코인:</b> <span id="coins"></span></p>
-    <p><b>장착 장비:</b> <span id="equip"></span></p>
-    <p><b>활성 스킬:</b> <span id="activeSkills"></span></p>
-  </div>
+    <div class="space-y-4">
+      <input id="usernameInput" type="text"
+        placeholder="사용자명"
+        class="w-full px-4 py-3 bg-gray-50 border rounded-xl text-gray-800" />
 
-  <div class="card">
-    <button onclick="showSection('quest')">퀘스트</button>
-    <button onclick="showSection('shop')">상점</button>
-    <button onclick="showSection('gacha')">뽑기</button>
-    <button onclick="showSection('skills')">스킬</button>
-    <button onclick="showSection('inventory')">인벤토리</button>
-    <button onclick="showSection('settings')">설정</button>
-  </div>
-</section>
-
-<!-- -------------------------------------------------------------
-   3. 퀘스트
--------------------------------------------------------------- -->
-<section id="quest" class="section">
-  <h2>퀘스트</h2>
-  <button onclick="openQuestModal()">+ 퀘스트 추가</button>
-
-  <div id="questList" style="margin-top:18px;"></div>
-
-  <button onclick="showSection('dashboard')">← 뒤로</button>
-</section>
-
-<!-- 퀘스트 모달 -->
-<div id="questModal" class="modal-bg">
-  <div class="modal">
-    <h3>퀘스트 추가</h3>
-    <input id="qName" placeholder="퀘스트명" style="width:100%;padding:12px;border-radius:10px;">
-    <select id="qDiff" style="width:100%;padding:12px;margin-top:10px;border-radius:10px;">
-      <option value="1">★1 EASY</option>
-      <option value="2">★2 NORMAL</option>
-      <option value="3">★3 HARD</option>
-    </select>
-    <button onclick="addQuest()">추가</button>
-    <button onclick="closeQuestModal()">취소</button>
+      <button onclick="login()"
+        class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold">
+        시작하기
+      </button>
+    </div>
   </div>
 </div>
 
-<!-- -------------------------------------------------------------
-   4. 상점
--------------------------------------------------------------- -->
-<section id="shop" class="section">
-  <h2>상점</h2>
+<!-- APP -->
+<div id="app" class="hidden min-h-screen pb-20">
 
-  <div class="card">
-    <p>게임 시간 +30분 — 25코인</p>
-    <button onclick="buyItem('time30',25)">구매</button>
-  </div>
-  <div class="card">
-    <p>게임 시간 +1시간 — 60코인</p>
-    <button onclick="buyItem('time60',60)">구매</button>
-  </div>
+  <!-- TOP -->
+  <div class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="px-4 py-4 flex justify-between items-center max-w-md mx-auto">
+      <div>
+        <h1 class="text-xl font-bold text-gray-800">LIFE-QUEST M</h1>
+        <p id="currentUserLabel" class="text-xs text-gray-500"></p>
+      </div>
 
-  <button onclick="showSection('dashboard')">← 뒤로</button>
-</section>
-
-<!-- -------------------------------------------------------------
-   5. 뽑기
--------------------------------------------------------------- -->
-<section id="gacha" class="section">
-  <h2>장비 뽑기 (20코인)</h2>
-  <button onclick="rollGacha()">뽑기!</button>
-
-  <div id="gachaResult" class="card" style="margin-top:20px;"></div>
-
-  <button onclick="showSection('dashboard')">← 뒤로</button>
-</section>
-
-<!-- -------------------------------------------------------------
-   6. 스킬
--------------------------------------------------------------- -->
-<section id="skills" class="section">
-  <h2>스킬</h2>
-
-  <div class="card">
-    <p>보상 2배</p>
-    <label class="toggle"><input id="sk_reward" type="checkbox" onchange="toggleSkill('reward2')"><span class="slider"></span></label>
+      <button onclick="logout()" class="p-2 rounded-xl hover:bg-gray-100">
+        <i data-lucide="log-out" class="w-5 h-5"></i>
+      </button>
+    </div>
   </div>
 
-  <div class="card">
-    <p>뽑기 운 2배</p>
-    <label class="toggle"><input id="sk_luck" type="checkbox" onchange="toggleSkill('luck2')"><span class="slider"></span></label>
+  <!-- NAV -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t z-20">
+    <div class="flex justify-around max-w-md mx-auto">
+
+      <button class="flex-1 py-3 text-center nav-item nav-active" data-page="home">
+        <i data-lucide="home" class="w-5 h-5 mx-auto"></i><div class="text-xs mt-1">홈</div>
+      </button>
+
+      <button class="flex-1 py-3 text-center nav-item nav-inactive" data-page="quests">
+        <i data-lucide="clipboard-list" class="w-5 h-5 mx-auto"></i><div class="text-xs mt-1">퀘스트</div>
+      </button>
+
+      <button class="flex-1 py-3 text-center nav-item nav-inactive" data-page="shop">
+        <i data-lucide="shopping-cart" class="w-5 h-5 mx-auto"></i><div class="text-xs mt-1">상점</div>
+      </button>
+
+      <button class="flex-1 py-3 text-center nav-item nav-inactive" data-page="gacha">
+        <i data-lucide="sparkles" class="w-5 h-5 mx-auto"></i><div class="text-xs mt-1">뽑기</div>
+      </button>
+
+      <button class="flex-1 py-3 text-center nav-item nav-inactive" data-page="dashboard">
+        <i data-lucide="user" class="w-5 h-5 mx-auto"></i><div class="text-xs mt-1">내정보</div>
+      </button>
+
+    </div>
   </div>
 
-  <div class="card">
-    <p>경험치 부스터 +20%</p>
-    <label class="toggle"><input id="sk_exp" type="checkbox" onchange="toggleSkill('exp20')"><span class="slider"></span></label>
-  </div>
+  <!-- CONTENT -->
+  <div id="pageContainer" class="px-4 py-6 max-w-md mx-auto"></div>
 
-  <button onclick="showSection('dashboard')">← 뒤로</button>
-</section>
-
-<!-- -------------------------------------------------------------
-   7. 인벤토리
--------------------------------------------------------------- -->
-<section id="inventory" class="section">
-  <h2>인벤토리</h2>
-
-  <div id="invList"></div>
-
-  <button onclick="showSection('dashboard')">← 뒤로</button>
-</section>
-
-<!-- -------------------------------------------------------------
-   8. 설정
--------------------------------------------------------------- -->
-<section id="settings" class="section">
-  <h2>설정</h2>
-
-  <div class="card">
-    <button style="background:#ff3b3b;border-color:#ff6b6b;" onclick="resetData()">현재 사용자 데이터 초기화</button>
-  </div>
-
-  <button onclick="showSection('dashboard')">← 뒤로</button>
-</section>
-
-
+</div>
 
 <script>
-/* ===============================================================
-    LIFE-QUEST 핵심 데이터
-================================================================ */
-let user = "";
-let data = {};
+///////////////////////////////////////////////////////
+// STATE
+///////////////////////////////////////////////////////
+let currentUser = null;
 
-/* 로컬스토리지 KEY */
-const KEY = (u)=> `LIFEQUEST_${u}`;
+let state = {
+  quests: [],
+  coins: 0,
+  exp: 0,
+  level: 1,
+  inventory: [],
+  equipped: [],
+  ownedSkills: []
+};
 
-/* ---------------------------------------------------------------
-   0. 화면 전환
---------------------------------------------------------------- */
-function showSection(id){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(id === "dashboard") renderDashboard();
-  if(id === "quest") renderQuest();
-  if(id === "inventory") renderInventory();
-  if(id === "skills") renderSkills();
+const DIFFICULTIES = {
+  easy: { name:"쉬움", reward:10, exp:5, color:"bg-emerald-100 text-emerald-700 border-emerald-300" },
+  medium:{ name:"보통", reward:30, exp:15, color:"bg-amber-100 text-amber-700 border-amber-300" },
+  hard:{ name:"어려움", reward:50, exp:30, color:"bg-rose-100 text-rose-700 border-rose-300" }
+};
+
+///////////////////////////////////////////////////////
+// RENDER FUNCTIONS
+///////////////////////////////////////////////////////
+function renderHome() {
+  return `
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+
+        <div class="bg-white p-4 rounded-2xl">
+          <p class="text-gray-500 text-xs mb-1">레벨</p>
+          <p class="text-3xl font-bold">${state.level}</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl">
+          <p class="text-gray-500 text-xs mb-1">코인</p>
+          <p class="text-3xl font-bold text-amber-500">${state.coins}</p>
+        </div>
+
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <div class="flex justify-between mb-2">
+          <p class="font-semibold text-sm">경험치</p>
+          <p class="text-sm">${state.exp}/${state.level*100}</p>
+        </div>
+
+        <div class="w-full bg-gray-100 h-3 rounded-full">
+          <div class="h-3 rounded-full bg-blue-500"
+            style="width:${(state.exp/(state.level*100))*100}%"></div>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <div class="flex justify-between mb-3">
+          <h3 class="font-bold">진행 중인 퀘스트</h3>
+          <span class="text-sm text-gray-500">${state.quests.length}개</span>
+        </div>
+
+        ${
+          state.quests.length===0
+          ? `<p class="text-gray-400 text-sm text-center py-4">퀘스트를 추가해보세요!</p>`
+          : state.quests.slice(0,3).map(q => `
+            <div class="bg-gray-50 p-3 rounded-xl flex justify-between items-center mb-2">
+
+              <div class="flex-1 mr-2">
+                <p class="font-medium text-sm truncate">${q.name}</p>
+                <span class="text-xs px-2 py-0.5 rounded-full border ${DIFFICULTIES[q.difficulty].color}">
+                  ${DIFFICULTIES[q.difficulty].name}
+                </span>
+              </div>
+
+              <button onclick="completeQuest(${q.id})"
+                class="bg-emerald-500 p-2 rounded-xl text-white">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+              </button>
+
+            </div>
+          `).join("")
+        }
+      </div>
+    </div>
+  `;
 }
 
-/* ---------------------------------------------------------------
-   1. 로그인
---------------------------------------------------------------- */
-function login(){
-  const name = document.getElementById("loginName").value.trim();
-  if(!name) return alert("사용자명을 입력하세요");
-  user = name;
+function renderQuests() {
+  return `
+    <div class="space-y-4">
 
-  const saved = localStorage.getItem(KEY(user));
-  if(saved){
-    data = JSON.parse(saved);
-  } else {
-    data = {
-      lv:1, exp:0, expNeed:100,
-      coins:0,
-      equip:"",
-      skills:{reward2:false,luck2:false,exp20:false},
-      quests:[],
-      inventory:[]
-    };
-    save();
-  }
-  showSection("dashboard");
+      <div class="bg-white p-4 rounded-2xl">
+        <h2 class="font-bold mb-3">퀘스트 추가</h2>
+
+        <input id="newQuestName"
+          class="w-full px-4 py-3 bg-gray-50 border rounded-xl mb-3"
+          placeholder="퀘스트 이름"/>
+
+        <select id="newQuestDifficulty"
+          class="w-full px-4 py-3 bg-gray-50 border rounded-xl mb-3">
+          <option value="easy">쉬움</option>
+          <option value="medium">보통</option>
+          <option value="hard">어려움</option>
+        </select>
+
+        <button onclick="addQuest()"
+          class="w-full py-3 bg-blue-500 rounded-xl text-white font-semibold flex items-center justify-center gap-2">
+          <i data-lucide="plus" class="w-5 h-5"></i> 퀘스트 추가
+        </button>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <h2 class="font-bold mb-3">내 퀘스트</h2>
+
+        ${
+          state.quests.length===0
+          ? `<p class="text-gray-400 text-center py-4 text-sm">등록된 퀘스트가 없습니다</p>`
+          : state.quests.map(q => `
+            <div class="bg-gray-50 p-3 rounded-xl mb-2">
+
+              <div class="flex justify-between">
+
+                <div class="mr-2">
+                  <p class="font-medium text-sm">${q.name}</p>
+                  <span class="text-xs px-2 py-0.5 rounded-full border ${DIFFICULTIES[q.difficulty].color}">
+                    ${DIFFICULTIES[q.difficulty].name}
+                  </span>
+                </div>
+
+                <div class="flex gap-1">
+                  <button onclick="completeQuest(${q.id})"
+                    class="bg-emerald-500 p-2 rounded-lg text-white">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                  </button>
+
+                  <button onclick="deleteQuest(${q.id})"
+                    class="bg-rose-500 p-2 rounded-lg text-white">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          `).join("")
+        }
+
+      </div>
+    </div>
+  `;
 }
 
-/* ---------------------------------------------------------------
-   저장
---------------------------------------------------------------- */
-function save(){
-  localStorage.setItem(KEY(user), JSON.stringify(data));
+///////////////////////////////////////////////////////
+// SHOP, SKILLS, GACHA, DASHBOARD
+///////////////////////////////////////////////////////
+
+const SHOP_ITEMS=[
+  {id:"game30",name:"게임 30분",cost:30,icon:"gift"},
+  {id:"game60",name:"게임 1시간",cost:50,icon:"gift"},
+  {id:"game120",name:"게임 2시간",cost:90,icon:"gift"}
+];
+
+const SKILLS=[
+  {id:"double_reward",name:"보상 2배",cost:200,icon:"zap"},
+  {id:"double_gacha",name:"뽑기운 2배",cost:150,icon:"sparkles"}
+];
+
+function renderShop(){
+  return `
+    <div class="space-y-4">
+
+      <div class="bg-white p-4 rounded-2xl">
+        <h2 class="font-bold mb-3">상점</h2>
+
+        ${SHOP_ITEMS.map(item=>`
+          <div class="bg-blue-50 p-4 rounded-xl mb-2">
+            <div class="flex justify-between items-center">
+
+              <div class="flex items-center gap-3">
+                <div class="bg-white p-2 rounded-lg">
+                  <i data-lucide="${item.icon}" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <div>
+                  <h3 class="font-semibold">${item.name}</h3>
+                  <p class="text-amber-600 text-sm">${item.cost} 코인</p>
+                </div>
+              </div>
+
+              <button onclick="buyItem('${item.id}')"
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">
+                구매
+              </button>
+
+            </div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <h2 class="font-bold mb-3">스킬</h2>
+
+        ${SKILLS.map(skill=>`
+          <div class="bg-purple-50 p-4 rounded-xl mb-2">
+
+            <div class="flex items-center gap-3 mb-3">
+              <div class="bg-white p-2 rounded-lg">
+                <i data-lucide="${skill.icon}" class="w-6 h-6 text-purple-600"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold">${skill.name}</h3>
+                <p class="text-amber-600 text-sm">${skill.cost} 코인</p>
+              </div>
+            </div>
+
+            <button onclick="buySkill('${skill.id}')"
+              ${state.ownedSkills.includes(skill.id)?'disabled':''}
+              class="w-full py-2 rounded-lg text-sm ${
+                state.ownedSkills.includes(skill.id)
+                  ? 'bg-gray-200 text-gray-500'
+                  : 'bg-purple-500 text-white'
+              }">
+              ${state.ownedSkills.includes(skill.id) ? "보유 중" : "구매하기"}
+            </button>
+
+          </div>
+        `).join("")}
+      </div>
+
+    </div>
+  `;
 }
 
-/* ---------------------------------------------------------------
-   2. 대시보드 출력
---------------------------------------------------------------- */
+///////////////////////////////////////////////////////
+// GACHA
+///////////////////////////////////////////////////////
+
+const EQUIPMENT_POOL=[
+  {id:1,name:"전설의 검",rarity:"전설",icon:"award"},
+  {id:2,name:"용의 갑옷",rarity:"전설",icon:"shirt"},
+  {id:3,name:"마법 부츠",rarity:"영웅",icon:"star"},
+  {id:4,name:"강철 방패",rarity:"영웅",icon:"award"},
+  {id:5,name:"철 검",rarity:"일반",icon:"award"},
+  {id:6,name:"가죽 갑옷",rarity:"일반",icon:"shirt"}
+];
+
+function renderGacha(){
+  return `
+    <div class="space-y-4">
+
+      <div class="bg-white p-6 rounded-2xl text-center">
+        <div class="inline-block p-4 bg-pink-600 rounded-2xl mb-4">
+          <i data-lucide="sparkles" class="w-10 h-10 text-white"></i>
+        </div>
+
+        <h2 class="font-bold mb-2">장비 뽑기</h2>
+        <p class="text-gray-500 text-sm mb-4">50 코인으로 장비 획득!</p>
+
+        <button onclick="gacha()"
+          class="w-full py-3 bg-pink-600 text-white rounded-xl flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="w-5 h-5"></i> 뽑기 (50 코인)
+        </button>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <h2 class="font-bold mb-3">보유 장비</h2>
+
+        ${
+          state.inventory.length===0
+          ? `<p class="text-gray-400 text-center py-4">보유한 장비가 없습니다</p>`
+          : `
+            <div class="grid grid-cols-2 gap-3">
+              ${state.inventory.map(item=>`
+                <div class="bg-gray-50 p-3 rounded-xl text-center">
+
+                  <div class="flex justify-center mb-2">
+                    <div class="p-2 rounded-lg ${
+                      item.rarity==="전설" ? "bg-amber-100"
+                      : item.rarity==="영웅" ? "bg-purple-100"
+                      : "bg-gray-100"
+                    }">
+                      <i data-lucide="${item.icon}" class="w-6 h-6"></i>
+                    </div>
+                  </div>
+
+                  <h3 class="font-semibold text-xs">${item.name}</h3>
+                  <p class="text-xs mb-2">${item.rarity}</p>
+
+                  <button onclick="toggleEquip(${item.uniqueId})"
+                    class="w-full py-1.5 rounded-lg text-xs ${
+                      state.equipped.find(e=>e.uniqueId===item.uniqueId)
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-blue-500 text-white'
+                    }">
+                    ${state.equipped.find(e=>e.uniqueId===item.uniqueId)?"착용 중":"착용"}
+                  </button>
+
+                </div>
+              `).join("")}
+            </div>
+          `
+        }
+
+      </div>
+
+    </div>
+  `;
+}
+
+///////////////////////////////////////////////////////
+// DASHBOARD
+///////////////////////////////////////////////////////
 function renderDashboard(){
-  document.getElementById("lv").innerText = data.lv;
-  document.getElementById("exp").innerText = data.exp;
-  document.getElementById("expNeed").innerText = data.expNeed;
-  document.getElementById("coins").innerText = data.coins;
-  document.getElementById("equip").innerText = data.equip || "무기 없음";
+  return `
+    <div class="space-y-4">
 
-  const act = Object.keys(data.skills).filter(k=>data.skills[k]).join(", ");
-  document.getElementById("activeSkills").innerText = act || "없음";
+      <div class="bg-white p-4 rounded-2xl">
+        <h2 class="font-bold mb-3">내 정보</h2>
+
+        <div class="flex justify-between bg-gray-50 p-3 rounded-xl">
+          <span>보유 코인</span>
+          <span class="text-xl font-bold text-amber-500">${state.coins}</span>
+        </div>
+
+        <div class="bg-gray-50 p-3 rounded-xl mt-3">
+          <div class="flex justify-between mb-2">
+            <span>레벨</span><span class="text-xl font-bold">${state.level}</span>
+          </div>
+
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="h-2 bg-blue-500 rounded-full"
+              style="width:${(state.exp/(state.level*100))*100}%"></div>
+          </div>
+
+          <p class="text-xs text-gray-500 mt-1">${state.exp}/${state.level*100} EXP</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <h3 class="font-bold mb-3">보유 스킬</h3>
+
+        ${
+          state.ownedSkills.length===0
+          ? `<p class="text-gray-400 text-center py-4 text-sm">보유한 스킬이 없습니다</p>`
+          : state.ownedSkills.map(skillId=>{
+              const s=SKILLS.find(x=>x.id===skillId);
+              return `
+                <div class="bg-purple-50 p-3 rounded-xl mb-2 flex items-center gap-3">
+                  <i data-lucide="${s.icon}" class="w-5 h-5 text-purple-600"></i>
+                  <span>${s.name}</span>
+                </div>
+              `;
+            }).join("")
+        }
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl">
+        <h3 class="font-bold mb-3">착용 중인 장비</h3>
+
+        ${
+          state.equipped.length===0
+          ? `<p class="text-gray-400 text-center py-4">착용 중인 장비가 없습니다</p>`
+          : `
+            <div class="grid grid-cols-2 gap-3">
+              ${state.equipped.map(item=>`
+                <div class="bg-gray-50 p-3 rounded-xl text-center">
+                  <div class="flex justify-center mb-2">
+                    <div class="p-2 rounded-lg">
+                      <i data-lucide="${item.icon}" class="w-6 h-6"></i>
+                    </div>
+                  </div>
+                  <p>${item.name}</p>
+                  <p class="text-xs text-gray-600">${item.rarity}</p>
+                </div>
+              `).join("")}
+            </div>
+          `
+        }
+      </div>
+
+    </div>
+  `;
 }
 
-/* ---------------------------------------------------------------
-   3. 퀘스트
---------------------------------------------------------------- */
-function openQuestModal(){ document.getElementById("questModal").style.display="flex"; }
-function closeQuestModal(){ document.getElementById("questModal").style.display="none"; }
-
+///////////////////////////////////////////////////////
+// ACTION FUNCTIONS
+///////////////////////////////////////////////////////
 function addQuest(){
-  const name = document.getElementById("qName").value.trim();
-  const diff = Number(document.getElementById("qDiff").value);
-  if(!name) return;
+  const name=document.getElementById("newQuestName").value.trim();
+  const diff=document.getElementById("newQuestDifficulty").value;
+  if(!name) return alert("퀘스트 이름을 입력하세요!");
 
-  data.quests.push({id:Date.now(),name,diff});
-  save();
-  closeQuestModal();
-  renderQuest();
+  state.quests.push({id:Date.now(),name,difficulty:diff});
+  saveState(); render();
 }
 
-function renderQuest(){
-  const box = document.getElementById("questList");
-  box.innerHTML = "";
-  data.quests.forEach(q=>{
-    const div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `
-      <b>${q.name}</b> — ★${q.diff}<br>
-      <button onclick="finishQuest(${q.id})">완료</button>
-    `;
-    box.appendChild(div);
+function completeQuest(id){
+  const quest=state.quests.find(q=>q.id===id);
+  if(!quest) return;
+
+  const d=DIFFICULTIES[quest.difficulty];
+  const mult=state.ownedSkills.includes("double_reward")?2:1;
+
+  state.coins+=d.reward*mult;
+  state.exp+=d.exp*mult;
+
+  if(state.exp>=state.level*100){
+    state.exp-=state.level*100;
+    state.level++;
+  }
+
+  state.quests=state.quests.filter(q=>q.id!==id);
+  saveState(); render();
+}
+
+function deleteQuest(id){
+  state.quests=state.quests.filter(q=>q.id!==id);
+  saveState(); render();
+}
+
+function buyItem(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(state.coins<item.cost) return alert("코인 부족!");
+  state.coins-=item.cost;
+  saveState(); render();
+  alert(item.name+" 구매 완료!");
+}
+
+function buySkill(id){
+  if(state.ownedSkills.includes(id)) return;
+  const s=SKILLS.find(x=>x.id===id);
+  if(state.coins<s.cost) return alert("코인 부족!");
+  state.coins-=s.cost;
+  state.ownedSkills.push(id);
+  saveState(); render();
+}
+
+function gacha(){
+  if(state.coins<50) return alert("코인 부족!");
+  state.coins-=50;
+
+  const mult=state.ownedSkills.includes("double_gacha")?2:1;
+
+  for(let i=0;i<mult;i++){
+    const r=Math.random();
+    let pool=r<0.05
+      ?EQUIPMENT_POOL.filter(e=>e.rarity==="전설")
+      :r<0.25
+      ?EQUIPMENT_POOL.filter(e=>e.rarity==="영웅")
+      :EQUIPMENT_POOL.filter(e=>e.rarity==="일반");
+
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    state.inventory.push({...pick,uniqueId:Date.now()+Math.random()});
+  }
+
+  saveState(); render();
+  alert("장비 "+mult+"개 획득!");
+}
+
+function toggleEquip(uid){
+  const exists=state.equipped.find(e=>e.uniqueId===uid);
+  if(exists){
+    state.equipped=state.equipped.filter(e=>e.uniqueId!==uid);
+  }else{
+    const item=state.inventory.find(i=>i.uniqueId===uid);
+    state.equipped.push(item);
+  }
+  saveState(); render();
+}
+
+///////////////////////////////////////////////////////
+// PAGE HANDLER
+///////////////////////////////////////////////////////
+let currentPage="home";
+
+function render(){
+  const area=document.getElementById("pageContainer");
+
+  if(currentPage==="home") area.innerHTML=renderHome();
+  if(currentPage==="quests") area.innerHTML=renderQuests();
+  if(currentPage==="shop") area.innerHTML=renderShop();
+  if(currentPage==="gacha") area.innerHTML=renderGacha();
+  if(currentPage==="dashboard") area.innerHTML=renderDashboard();
+
+  lucide.createIcons();
+}
+
+document.querySelectorAll(".nav-item").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    currentPage=btn.dataset.page;
+
+    document.querySelectorAll(".nav-item").forEach(b=>{
+      b.classList.remove("nav-active");
+      b.classList.add("nav-inactive");
+    });
+
+    btn.classList.add("nav-active");
+    btn.classList.remove("nav-inactive");
+    
+    render();
   });
+});
+
+///////////////////////////////////////////////////////
+// LOGIN / STORAGE
+///////////////////////////////////////////////////////
+function login(){
+  const name=document.getElementById("usernameInput").value.trim();
+  if(!name) return alert("사용자명을 입력하세요!");
+
+  currentUser=name;
+  document.getElementById("currentUserLabel").textContent=currentUser+"님";
+
+  loadState();
+
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
+  render();
 }
 
-function finishQuest(id){
-  const q = data.quests.find(x=>x.id===id);
-  if(!q) return;
-
-  let coin = [0,5,12,20][q.diff];
-  let exp  = [0,10,25,40][q.diff];
-
-  if(data.skills.reward2){ coin*=2; exp*=2; }
-  if(data.skills.exp20){ exp = Math.floor(exp*1.2); }
-
-  data.coins += coin;
-  data.exp += exp;
-
-  // 레벨업
-  while(data.exp >= data.expNeed){
-    data.exp -= data.expNeed;
-    data.lv++;
-    data.expNeed = Math.floor(data.expNeed*1.3);
-  }
-
-  data.quests = data.quests.filter(x=>x.id!==id);
-  save();
-  renderQuest();
+function logout(){
+  currentUser=null;
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
 }
 
-/* ---------------------------------------------------------------
-   4. 상점
---------------------------------------------------------------- */
-function buyItem(name, price){
-  if(data.coins < price) return alert("코인이 부족합니다.");
-  data.coins -= price;
-  save();
-  alert("구매 완료!");
-  renderDashboard();
+function saveState(){
+  if(!currentUser) return;
+  localStorage.setItem("lifequest_"+currentUser,JSON.stringify(state));
 }
 
-/* ---------------------------------------------------------------
-   5. 뽑기
---------------------------------------------------------------- */
-function rollGacha(){
-  if(data.coins < 20) return alert("코인이 부족합니다.");
-  data.coins -= 20;
+function loadState(){
+  const raw=localStorage.getItem("lifequest_"+currentUser);
+  if(!raw) return;
 
-  const base = [
-    ["C",40],["UC",25],["R",15],["SR",10],["SSR",5],["V",3],["VIP",2]
-  ];
-  let r = Math.random()*100;
-
-  // 운 2배 스킬 → SSR 이상 확률 증가
-  if(data.skills.luck2){
-    base[4][1]*=2; // SSR
-    base[5][1]*=2; // V
-    base[6][1]*=2; // VIP
-  }
-
-  let grade="C";
-  for(let [g,p] of base){
-    if(r < p){ grade=g; break; }
-    r -= p;
-  }
-
-  // 옵션 생성
-  const ops = ["공격력 +10","경험치 +10%","코인 +10%"];
-  const option = ops[Math.floor(Math.random()*ops.length)];
-
-  const item = {id:Date.now(),grade,option};
-  data.inventory.push(item);
-  save();
-
-  document.getElementById("gachaResult").innerHTML =
-    `<b>${grade}</b> 등급 장비 획득!<br>${option}`;
+  const data=JSON.parse(raw);
+  state={...state,...data};
 }
 
-/* ---------------------------------------------------------------
-   6. 스킬
---------------------------------------------------------------- */
-function renderSkills(){
-  document.getElementById("sk_reward").checked = data.skills.reward2;
-  document.getElementById("sk_luck").checked = data.skills.luck2;
-  document.getElementById("sk_exp").checked = data.skills.exp20;
-}
-
-function toggleSkill(name){
-  if(name==="reward2") data.skills.reward2 = !data.skills.reward2;
-  if(name==="luck2") data.skills.luck2 = !data.skills.luck2;
-  if(name==="exp20") data.skills.exp20 = !data.skills.exp20;
-  save();
-}
-
-/* ---------------------------------------------------------------
-   7. 인벤토리
---------------------------------------------------------------- */
-function renderInventory(){
-  const box = document.getElementById("invList");
-  box.innerHTML = "";
-  
-  data.inventory.forEach(i=>{
-    const div = document.createElement("div");
-    div.className="inv-item";
-    div.innerHTML = `
-      <b>${i.grade}</b> — ${i.option}<br>
-      ${data.equip===i.id ? "<button onclick='unequip()'>해제</button>"
-      : `<button onclick='equip(${i.id})'>착용</button>`}
-    `;
-    box.appendChild(div);
-  });
-}
-
-function equip(id){
-  data.equip = id;
-  save();
-  renderInventory();
-}
-
-function unequip(){
-  data.equip = "";
-  save();
-  renderInventory();
-}
-
-/* ---------------------------------------------------------------
-   8. 데이터 초기화
---------------------------------------------------------------- */
-function resetData(){
-  if(!confirm("현재 사용자 데이터를 모두 삭제합니다.")) return;
-  localStorage.removeItem(KEY(user));
-  location.reload();
-}
+lucide.createIcons();
 </script>
 
 </body>
